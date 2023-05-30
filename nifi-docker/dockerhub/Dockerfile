@@ -23,9 +23,10 @@ ARG MAINTAINER="Apache NiFi <dev@nifi.apache.org>"
 LABEL maintainer="${MAINTAINER}"
 LABEL site="https://nifi.apache.org"
 
+ARG SISMAP_USER=sismap
 ARG UID=1000
 ARG GID=1000
-ARG NIFI_VERSION=2.0.0
+ARG NIFI_VERSION=1.21.0
 ARG BASE_URL=https://archive.apache.org/dist
 ARG MIRROR_BASE_URL=${MIRROR_BASE_URL:-${BASE_URL}}
 ARG DISTRO_PATH=${DISTRO_PATH:-${NIFI_VERSION}}
@@ -45,17 +46,17 @@ ADD sh/ ${NIFI_BASE_DIR}/scripts/
 RUN chmod -R +x ${NIFI_BASE_DIR}/scripts/*.sh
 
 # Setup NiFi user and create necessary directories
-RUN groupadd -g ${GID} nifi || groupmod -n nifi `getent group ${GID} | cut -d: -f1` \
-    && useradd --shell /bin/bash -u ${UID} -g ${GID} -m nifi \
+RUN groupadd -g ${GID} ${SISMAP_USER} || groupmod -n ${SISMAP_USER} `getent group ${GID} | cut -d: -f1` \
+    && useradd --shell /bin/bash -u ${UID} -g ${GID} -m ${SISMAP_USER} \
     && mkdir -p ${NIFI_BASE_DIR} \
-    && chown -R nifi:nifi ${NIFI_BASE_DIR} \
+    && chown -R ${SISMAP_USER}:${SISMAP_USER} ${NIFI_BASE_DIR} \
     && apt-get update \
     && apt-get install -y jq xmlstarlet procps unzip \
     && apt-get -y autoremove \
     && apt-get clean autoclean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-USER nifi
+USER ${SISMAP_USER}
 
 # Download, validate, and expand Apache NiFi Toolkit binary.
 RUN curl -fSL ${MIRROR_BASE_URL}/${NIFI_TOOLKIT_BINARY_PATH} -o ${NIFI_BASE_DIR}/nifi-toolkit-${NIFI_VERSION}-bin.zip \

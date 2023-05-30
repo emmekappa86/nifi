@@ -16,8 +16,8 @@
 # under the License.
 #
 
-ARG IMAGE_NAME=eclipse-temurin
-ARG IMAGE_TAG=11-jre
+ARG IMAGE_NAME=debian
+ARG IMAGE_TAG=11
 FROM ${IMAGE_NAME}:${IMAGE_TAG}
 ARG MAINTAINER="Apache NiFi <dev@nifi.apache.org>"
 LABEL maintainer="${MAINTAINER}"
@@ -37,6 +37,9 @@ ENV NIFI_HOME ${NIFI_BASE_DIR}/nifi-current
 ENV NIFI_TOOLKIT_HOME ${NIFI_BASE_DIR}/nifi-toolkit-current
 ENV NIFI_PID_DIR=${NIFI_HOME}/run
 ENV NIFI_LOG_DIR=${NIFI_HOME}/logs
+
+RUN apt update
+RUN apt install -y curl default-jre
 
 ADD sh/ ${NIFI_BASE_DIR}/scripts/
 RUN chmod -R +x ${NIFI_BASE_DIR}/scripts/*.sh

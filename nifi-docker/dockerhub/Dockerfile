@@ -80,6 +80,14 @@ RUN curl -fSL ${MIRROR_BASE_URL}/${NIFI_BINARY_PATH} -o ${NIFI_BASE_DIR}/nifi-${
     && mkdir -p ${NIFI_HOME}/state \
     && mkdir -p ${NIFI_LOG_DIR} \
     && ln -s ${NIFI_HOME} ${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}
+    
+### Sismap Specific Instructions ###
+
+# Importing Siemens certificates
+COPY data/certs/siemens_root_ca_v3.0_2016.pem /tmp
+COPY data/certs/siemens_issuing_ca_intranet_server_2017.pem /tmp
+
+### End Sismap Specific Instructions ###
 
 VOLUME ${NIFI_LOG_DIR} \
        ${NIFI_HOME}/conf \

@@ -84,8 +84,23 @@ RUN curl -fSL ${MIRROR_BASE_URL}/${NIFI_BINARY_PATH} -o ${NIFI_BASE_DIR}/nifi-${
 ### Sismap Specific Instructions ###
 
 # Importing Siemens certificates
-COPY data/certs/siemens_root_ca_v3.0_2016.pem /tmp
-COPY data/certs/siemens_issuing_ca_intranet_server_2017.pem /tmp
+ARG TRUSTSTORE_PASSWORD
+RUN mkdir /opt/nifi/nifi-current/conf/sismap_certs/
+COPY ./data/certs/siemens_root_ca_v3.0_2016.pem /opt/nifi/nifi-current/conf/sismap_certs/
+COPY ./data/certs/siemens_issuing_ca_intranet_server_2017.pem /opt/nifi/nifi-current/conf/sismap_certs/
+RUN keytool -import -trustcacerts -alias siemens_root_ca_v3.0_2016 -file /opt/nifi/nifi-current/conf/sismap_certs/siemens_root_ca_v3.0_2016.pem -keystore /opt/nifi/nifi-current/conf/sismap_certs/sismap_truststore.p12 -storepass ${TRUSTSTORE_PASSWORD} -noprompt
+RUN keytool -import -trustcacerts -alias siemens_issuing_ca_intranet_server_2017 -file /opt/nifi/nifi-current/conf/sismap_certs/siemens_issuing_ca_intranet_server_2017.pem -keystore /opt/nifi/nifi-current/conf/sismap_certs/sismap_truststore.p12 -storepass ${TRUSTSTORE_PASSWORD} -noprompt
+
+# Creating Sismap's CA and root certificate
+ARG ROOTCERT_PASSWORD
+RUN mkdir /opt/nifi/nifi-current/conf/sismap_certs/CA && mkdir /opt/nifi/nifi-current/conf/sismap_certs/CA/new_certs
+RUN cd /opt/nifi/nifi-current/conf/sismap_certs/CA && openssl genpkey -algorithm RSA -out sismap_ca_key.pem -aes256 -pass pass:${ROOTCERT_PASSWORD}
+RUN cd /opt/nifi/nifi-current/conf/sismap_certs/CA && openssl req -new -x509 -days 365 -key sismap_ca_key.pem -out sismap_ca_cert.pem -passin pass:${ROOTCERT_PASSWORD} -subj "/CN=SiSMAP_CA"
+RUN keytool -import -trustcacerts -alias SiSMAP_root -file /opt/nifi/nifi-current/conf/sismap_certs/CA/sismap_ca_cert.pem -keystore /opt/nifi/nifi-current/conf/sismap_certs/sismap_truststore.p12 -storepass ${TRUSTSTORE_PASSWORD} -noprompt
+
+# Copying SiSMAP scripts
+RUN mkdir /home/sismap/scripts
+COPY data/scripts/certmanagement.sh /home/sismap/scripts
 
 ### End Sismap Specific Instructions ###
 

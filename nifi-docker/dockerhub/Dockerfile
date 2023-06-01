@@ -39,8 +39,12 @@ ENV NIFI_TOOLKIT_HOME ${NIFI_BASE_DIR}/nifi-toolkit-current
 ENV NIFI_PID_DIR=${NIFI_HOME}/run
 ENV NIFI_LOG_DIR=${NIFI_HOME}/logs
 
+### Sismap Specific Instructions ###
+
 RUN apt update
 RUN apt install -y curl default-jre
+
+### End Sismap Specific Instructions ###
 
 ADD sh/ ${NIFI_BASE_DIR}/scripts/
 RUN chmod -R +x ${NIFI_BASE_DIR}/scripts/*.sh
@@ -82,6 +86,9 @@ RUN curl -fSL ${MIRROR_BASE_URL}/${NIFI_BINARY_PATH} -o ${NIFI_BASE_DIR}/nifi-${
     && ln -s ${NIFI_HOME} ${NIFI_BASE_DIR}/nifi-${NIFI_VERSION}
     
 ### Sismap Specific Instructions ###
+
+# Importing Nifi custom properties
+COPY data/conf/nifi.custom.properties /opt/nifi/nifi-current/conf/
 
 # Importing Siemens certificates
 ARG TRUSTSTORE_PASSWORD
